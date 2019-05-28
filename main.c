@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <fcntl.h>
 
 int		users;
 
@@ -103,6 +104,19 @@ int	main(void)
 	printf(" [ INFO ] - Matt_daemon: Started.\n");
 	if (signal(SIGCHLD, signal_handler) == SIG_ERR)
 		exit(2);
+	if (access("/var/lock/matt_daemon.lock", F_OK) == 0)
+	{
+		printf("File exist\n");
+		return (1);
+	}
+	else
+	{
+		if (open("/var/lock/matt_daemon.lock", O_CREAT, O_RDWR, 0644) < 0)
+		{
+			printf("Open error\n");
+			return (1);
+		}
+	}
 	sockfd = create_server();
 	showtime();
 	printf(" [ INFO ] - Matt_daemon: Server created.\n");
