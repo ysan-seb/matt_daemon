@@ -14,6 +14,7 @@ public:
     Tintin_reporter(Tintin_reporter const &src);
     ~Tintin_reporter();
     Tintin_reporter &operator=(Tintin_reporter const &rhs);
+
     void log(std::string msg);
     void info(std::string msg);
     void error(std::string msg);

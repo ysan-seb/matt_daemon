@@ -1,4 +1,4 @@
-#include "Tintin_reporter.hpp"
+#include "../inc/Tintin_reporter.hpp"
 
 Tintin_reporter::Tintin_reporter(void)
 {
@@ -17,12 +17,13 @@ Tintin_reporter::~Tintin_reporter(void) {
 
 Tintin_reporter &Tintin_reporter::operator=(Tintin_reporter const &rhs)
 {
+    (void)&rhs;
     return *this;
 }
 
 void Tintin_reporter::logtime(void)
 {
-    this->time = std::time(nullptr);
+    this->time = std::time(0);
     if (std::strftime(this->timeFormat, sizeof(this->timeFormat), "[%d/%m/%Y-%H:%M:%S]", std::localtime(&this->time)) == 0)
     {
         this->timeFormat[0] = '\0';

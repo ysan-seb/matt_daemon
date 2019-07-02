@@ -25,6 +25,7 @@ void showtime()
 
 void signal_handler(int sig)
 {
+	printf("%d\n", sig);
 	if (sig == SIGCHLD)
 	{
 		users--;
@@ -34,7 +35,11 @@ void signal_handler(int sig)
 	}
 }
 
+<<<<<<< Updated upstream
 int md_fork(int sock)
+=======
+int		md_fork(int sock, int daemon_pid)
+>>>>>>> Stashed changes
 {
 	int len;
 	pid_t child;
@@ -50,8 +55,15 @@ int md_fork(int sock)
 	printf(": User connection\n");
 	if ((child = fork()) == 0)
 	{
+<<<<<<< Updated upstream
 		if (users > 3)
 			exit(0);
+=======
+		if (users > 3) {
+			close(cs_socket);
+			exit(0);
+		}
+>>>>>>> Stashed changes
 		while (1)
 		{
 			memset(buf, 0, 1024);
@@ -61,6 +73,19 @@ int md_fork(int sock)
 				exit(0);
 			}
 			buf[len] = '\0';
+			if (strcmp("quit\n", buf) == 0)
+			{
+				showtime();
+				printf("[ INFO ] - Matt_daemon: Request quit.\n");
+				showtime();
+				printf("[ INFO ] - Matt_daemon: Quitting.\n");
+				kill(daemon_pid, SIGKILL);
+				exit(0);
+			} else if (buf[0] && buf[0] != '\n')
+			{
+				showtime();
+				printf("[ LOG ] - Matt_daemon: User input: %s", buf);
+			}
 		}
 	}
 	else if (child < 0)
@@ -97,29 +122,50 @@ int create_server(void)
 
 int main(void)
 {
+<<<<<<< Updated upstream
 	int ret;
 	int sockfd;
 	char buf[1024];
+=======
+	int fd;
+	int	ret;
+	int	sockfd;
+	char	buf[1024];
+>>>>>>> Stashed changes
 
-	if (getuid() != 0)
-		dprintf(2, "%s: Permissions denied\n", __FILE__);
+	// if (getuid() != 0)
+	// {
+	// 	dprintf(2, "%s: Permissions denied\n", "matt_daemon");
+	// 	return (0);
+	// }
 	showtime();
 	printf(" [ INFO ] - Matt_daemon: Started.\n");
 	if (signal(SIGCHLD, signal_handler) == SIG_ERR)
 		exit(2);
-	if (access("/var/lock/matt_daemon.lock", F_OK) == 0)
-	{
-		printf("File exist\n");
-		return (1);
-	}
-	else
-	{
-		if (open("/var/lock/matt_daemon.lock", O_CREAT, O_RDWR, 0644) < 0)
+	// if (access("/var/lock/matt_daemon.lock", F_OK) == 0)
+	// {
+	// 	printf("/var/lock/matt_daemon.lock exist\n");
+	// 	return (1);
+	// }
+	// else
+	// {
+		if ((fd = open("/var/lock/matt_daemon.lock", O_CREAT, O_RDWR, 0644)) < 0)
 		{
-			printf("Open error\n");
+			printf("Can't open :/var/lock/matt_daemon.lock\n");
+			showtime();
+			printf(" [ ERROR ] - Matt_daemon: Error file locked.\n");
+			showtime();
+			printf("[ INFO ] - Matt_daemon: Quitting.\n");
 			return (1);
 		}
-	}
+		// if (lockf(fd, F_TLOCK, 0) == -1)
+		// {
+		// 	showtime();
+		// 	printf(" [ ERROR ] - Matt_daemon: Error file locked.\n");
+		// 	return (1);
+		// }
+		// lockf(fd, F_UNLCK, 0);
+	// }
 	sockfd = create_server();
 	showtime();
 	printf(" [ INFO ] - Matt_daemon: Server created.\n");
@@ -131,6 +177,6 @@ int main(void)
 	printf(" [ INFO ] - Matt_daemon: started. PID: %d.\n", getpid());
 	while (1)
 	{
-		md_fork(sockfd);
+		md_fork(sockfd, getpid());
 	}
 }

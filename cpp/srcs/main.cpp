@@ -1,13 +1,19 @@
-#include "Tintin_reporter.hpp"
+#include "../inc/Tintin_reporter.hpp"
 
 #include <fcntl.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #include <csignal>
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 
 int users = 0;
 Tintin_reporter logger;
@@ -27,29 +33,22 @@ int md_fork(int sock, int daemonPid)
 	if (users == 3)
 		close(cs_socket);
 	users++;
-	if ((child = fork()) == 0)
-	{
-		while (1)
-		{
+	if ((child = fork()) == 0) {
+		while (1) {
 			memset(buf, 0, 1024);
-			if ((len = recv(cs_socket, buf, 1023, 0)) < 0)
-			{
+			if ((len = recv(cs_socket, buf, 1023, 0)) < 0) {
 				close(cs_socket);
 				exit(0);
-			}
-			else if (len == 0)
-			{
+			} else if (len == 0) {
 				close(cs_socket);
-			}
-			else if (strcmp(buf, "quit\n") == 0)
-			{
+			} else if (strcmp(buf, "quit\n") == 0) {
 				logger.info("Request quit.\n");
 				logger.info("Quitting.\n");
+				if(remove("matt_daemon.lock") != 0)
+    				perror( "Error deleting file" );
 				kill(daemonPid, SIGKILL);
 				exit(0);
-			}
-			else if (buf[0] != '\n')
-			{
+			} else if (buf[0] != '\n') {
 				msg = "User input: ";
 				msg += buf;
 				if (msg.c_str()[msg.length() -1] != '\n')
@@ -58,9 +57,7 @@ int md_fork(int sock, int daemonPid)
 			}
 			buf[len] = '\0';
 		}
-	}
-	else if (child > 0)
-	{
+	} else if (child > 0) {
 		close(cs_socket);
 	}
 	return (1);
@@ -97,8 +94,6 @@ void signal_handler(int sig)
 
 	if (sig == SIGCHLD)
 	{
-		if (users == 3)
-			logger.info(": User refused\n");
 		users--;
 		wait(0);
 	}
@@ -108,14 +103,34 @@ void checkPermission(void)
 {
 	if (getuid() != 0)
 	{
-		std::cerr << "Matt_daemon: Permission denied\n"
-				  << std::endl;
+		std::cerr << "Matt_daemon: Permission denied\n" << std::endl;
 		exit(1);
 	}
 }
 
+void	_daemon(void) 
+{
+	pid_t pid;
+	pid_t sid;
+
+	pid = fork();
+	if (pid < 0)
+		exit(1);
+	if (pid > 0)
+		exit(0);
+	umask(0);
+	sid = setsid();
+	if(sid < 0)
+		exit(1);
+	chdir("/");
+	close(STDIN_FILENO);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
+}
+
 int main(void)
 {
+	int file;
 	int sockfd;
 	int daemonPid;
 
@@ -123,16 +138,22 @@ int main(void)
 	logger.info("Matt_daemon: Started.\n");
 	if (std::signal(SIGCHLD, signal_handler) == SIG_ERR)
 		exit(2);
-	if (open("matt_daemon.lock", O_CREAT, O_RDWR, 0644) < 0)
+	if ((file = open("matt_daemon.lock", O_CREAT | O_RDWR, 0644)) < 0)
 	{
-		std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;
+		std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;	
 		logger.info("Matt_daemon: Quitting.\n");
 		exit(2);
 	}
+	if (flock(file, LOCK_EX | LOCK_NB ) < 0)
+	{
+		std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;	
+		logger.error("Matt_daemon: Error file locked.\n");
+		logger.info("Matt_daemon: Quitting.\n");
+		exit(1);
+	}
 	sockfd = createServer();
 	logger.info("Matt_daemon: Server created.\n");
-	if (daemon(1, 1) < 0)
-		return (-1);
+	_daemon();
 	daemonPid = getpid();
 	logger.info("Matt_daemon: Entering Daemon mode.\n");
 	logger.info("Matt_daemon: started. PID: " + std::to_string(daemonPid) + "\n");
