@@ -1,63 +1,75 @@
-#include "../inc/Tintin_reporter.hpp"
+#include "../inc/matt_daemon.hpp"
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <sys/file.h>
-#include <sys/stat.h>
-#include <errno.h>
-
-#include <csignal>
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstdlib>
-
-int users = 0;
-Tintin_reporter logger;
+extern int users;
+extern Tintin_reporter logger;
+extern std::vector<int> pids;
 
 int md_fork(int sock, int daemonPid)
 {
 	int len;
-	pid_t child;
+	int child;
+
 	char buf[1024];
 	int cs_socket;
 	unsigned int c_len;
 	struct sockaddr_in c_sin;
 	std::string msg;
 
+
+//
+	printf("Users : %d\n", users);
 	if ((cs_socket = accept(sock, (struct sockaddr *)&c_sin, &c_len)) < 0)
 		return (-1);
-	if (users == 3)
+	if (users == 3) {
 		close(cs_socket);
+		return (1);
+	}
 	users++;
-	if ((child = fork()) == 0) {
-		while (1) {
+	if ((child = fork()) == 0)
+	{
+		close(sock);
+		while (1)
+		{
 			memset(buf, 0, 1024);
-			if ((len = recv(cs_socket, buf, 1023, 0)) < 0) {
+			if ((len = recv(cs_socket, buf, 1023, 0)) < 0)
+			{
 				close(cs_socket);
-				exit(0);
-			} else if (len == 0) {
+				exit(42);
+			}
+			else if (len == 0)
+			{
 				close(cs_socket);
-			} else if (strcmp(buf, "quit\n") == 0) {
+			}
+			else if (strcmp(buf, "quit\n") == 0)
+			{
 				logger.info("Request quit.\n");
 				logger.info("Quitting.\n");
-				if(remove("matt_daemon.lock") != 0)
-    				perror( "Error deleting file" );
+
+				for (unsigned long i = 0; i < pids.size(); i++)
+				{
+					if (pids[i] != child)
+						kill(pids[i], SIGKILL);
+				}
+				kill(child, SIGKILL);
+				if (remove("matt_daemon.lock") != 0)
+					perror("Error deleting file");
 				kill(daemonPid, SIGKILL);
 				exit(0);
-			} else if (buf[0] != '\n') {
+			}
+			else if (buf[0] != '\n')
+			{
 				msg = "User input: ";
 				msg += buf;
-				if (msg.c_str()[msg.length() -1] != '\n')
+				if (msg.c_str()[msg.length() - 1] != '\n')
 					msg += "\n";
 				logger.log(msg);
 			}
 			buf[len] = '\0';
 		}
-	} else if (child > 0) {
+	}
+	else if (child > 0)
+	{
+		pids.push_back(child);
 		close(cs_socket);
 	}
 	return (1);
@@ -89,26 +101,17 @@ int createServer(void)
 	return (sock);
 }
 
-void signal_handler(int sig)
-{
-
-	if (sig == SIGCHLD)
-	{
-		users--;
-		wait(0);
-	}
-}
-
 void checkPermission(void)
 {
 	if (getuid() != 0)
 	{
-		std::cerr << "Matt_daemon: Permission denied\n" << std::endl;
+		std::cerr << "Matt_daemon: Permission denied\n"
+				  << std::endl;
 		exit(1);
 	}
 }
 
-void	_daemon(void) 
+void _daemon(void)
 {
 	pid_t pid;
 	pid_t sid;
@@ -120,13 +123,15 @@ void	_daemon(void)
 		exit(0);
 	umask(0);
 	sid = setsid();
-	if(sid < 0)
+	if (sid < 0)
 		exit(1);
 	chdir("/");
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
+	// close(STDIN_FILENO);
+	// close(STDOUT_FILENO);
+	// close(STDERR_FILENO);
 }
+
+//https://github.com/torvalds/linux/blob/master/include/linux/signal.h
 
 int main(void)
 {
@@ -135,19 +140,20 @@ int main(void)
 	int daemonPid;
 
 	// checkPermission();
+	users = 0;
 	logger.info("Matt_daemon: Started.\n");
-	if (std::signal(SIGCHLD, signal_handler) == SIG_ERR)
-		exit(2);
+	signals();
 	if ((file = open("matt_daemon.lock", O_CREAT | O_RDWR, 0644)) < 0)
 	{
-		std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;	
+		std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;
 		logger.info("Matt_daemon: Quitting.\n");
 		exit(2);
 	}
-	if (flock(file, LOCK_EX | LOCK_NB ) < 0)
+	if (flock(file, LOCK_EX | LOCK_NB) < 0)
 	{
-		std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;	
+		std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;
 		logger.error("Matt_daemon: Error file locked.\n");
+		printf("[%d] %s\n", errno, strerror(errno));
 		logger.info("Matt_daemon: Quitting.\n");
 		exit(1);
 	}

@@ -3,6 +3,7 @@ NAME = matt_daemon
 SRC_PATH = ./srcs/
 
 SRCS =	$(SRC_PATH)main.cpp\
+		$(SRC_PATH)signals.cpp \
 		$(SRC_PATH)Tintin_reporter.cpp \
 
 OBJS =	$(SRCS:.cpp=.o)
