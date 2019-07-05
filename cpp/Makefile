@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: ysan-seb <marvin@42.fr>                    +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2019/07/05 11:46:43 by ysan-seb          #+#    #+#              #
+#    Updated: 2019/07/05 14:24:36 by ysan-seb         ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
 NAME = matt_daemon
 
 SRC_PATH = ./srcs/
@@ -10,18 +22,18 @@ OBJS =	$(SRCS:.cpp=.o)
 
 CC = g++
 
-FLAGS = -Wall -Wextra -Werror -std=c++11
+FLAGS = -Wall -Wextra -Werror -std=c++11 -g3 -fsanitize=address
 
 HEADER = -I./inc
 
 RM = rm -rf
 
-all	: $(NAME)
+all	:	$(NAME)
 
 $(NAME):$(OBJS)
 	$(CC) $(FLAGS) -o $(NAME) $(OBJS) $(HEADER)
 
-%.o: %.cpp ./inc/Tintin_reporter.hpp
+%.o: %.cpp ./inc/Tintin_reporter.hpp ../inc/matt_daemon.hpp
 	$(CC) $(FLAGS) -o $@ -c  $< $(HEADER)
 
 clean	:

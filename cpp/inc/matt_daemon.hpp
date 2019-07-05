@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   matt_daemon.hpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ysan-seb <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/07/05 11:47:42 by ysan-seb          #+#    #+#             */
+/*   Updated: 2019/07/05 11:47:44 by ysan-seb         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef MATT_DAEMON_HPP
 #define MATT_DAEMON_HPP
 
@@ -21,8 +33,8 @@
 #define TERMINATE 1
 #define IGNORE 0
 
-void signals(void);
-int default_action(int sig);
-void signal_handler(int sig);
+void	signals(void);
+int		default_action(int sig);
+void	signal_handler(int sig);
 
 #endif
