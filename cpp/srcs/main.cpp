@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ysan-seb <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: maki <maki@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/05 11:48:49 by ysan-seb          #+#    #+#             */
-/*   Updated: 2019/07/05 11:51:22 by ysan-seb         ###   ########.fr       */
+/*   Updated: 2019/07/06 21:43:22 by maki             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ void child_process(int cs_socket)
 			exit(84);
 		else if (buf[0] != '\n')
 		{
-			msg = "User input: ";
+			msg = "Matt_daemon: User input: ";
 			msg += buf;
 			if (msg.c_str()[msg.length() - 1] != '\n')
 				msg += "\n";
@@ -56,7 +56,10 @@ int md_fork(int sock)
 	struct sockaddr_in c_sin;
 
 	if ((cs_socket = accept(sock, (struct sockaddr *)&c_sin, &c_len)) < 0)
-		return (-1);
+	{
+		logger.error("Matt_daemon: Error durring acceptation client.\n");
+		exit (-1);
+	}
 	if (users == 3) {
 		close(cs_socket);
 		return (1);
@@ -134,15 +137,15 @@ int main(void)
 {
 	int file;
 	int sockfd;
-	sigset_t mask;
-	sigset_t orig_mask;
-	// checkPermission();
+	
+	checkPermission();
 	users = 0;
 	logger.info("Matt_daemon: Started.\n");
-	mkdir("/var/log/matt_daemon", 0700);
+	mkdir("/var/log/matt_daemon/", 0700);
 	signals();
 	if ((file = open("/var/lock/matt_daemon.lock", O_CREAT | O_RDWR, 0644)) < 0)
 	{
+		printf("%s\n", strerror(errno));
 		std::cerr << "Can't open :/var/lock/matt_daemon.lock" << std::endl;
 		logger.info("Matt_daemon: Quitting.\n");
 		exit(EXIT_FAILURE);

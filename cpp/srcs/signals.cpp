@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   signals.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ysan-seb <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: maki <maki@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/05 11:48:03 by ysan-seb          #+#    #+#             */
-/*   Updated: 2019/07/05 11:48:46 by ysan-seb         ###   ########.fr       */
+/*   Updated: 2019/07/06 19:46:33 by maki             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,8 @@ void sigchld(int sig)
 				kill(pids[i], SIGKILL);
 			if (remove("/var/lock/matt_daemon.lock") != 0)
 				logger.error("Matt_daemon: error while deleting the file");
-			logger.info("Request quit.\n");
-			logger.info("Quitting.\n");
+			logger.info("Matt_daemon: Request quit.\n");
+			logger.info("Matt_daemon: Quitting.\n");
 			kill(daemonPid, SIGKILL);
 		}
 	}
