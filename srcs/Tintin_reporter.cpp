@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tintin_reporter.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ysan-seb <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: maki <maki@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/05 11:51:30 by ysan-seb          #+#    #+#             */
-/*   Updated: 2019/07/05 12:00:34 by ysan-seb         ###   ########.fr       */
+/*   Updated: 2019/07/06 22:40:26 by maki             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 Tintin_reporter::Tintin_reporter(void)
 {
 	this->file.open ("/var/log/matt_daemon/matt_daemon.log", std::fstream::app | std::fstream::out);
-
 }
 
 Tintin_reporter::Tintin_reporter(Tintin_reporter const &src)

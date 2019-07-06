@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ysan-seb <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: maki <maki@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/07/05 11:48:49 by ysan-seb          #+#    #+#             */
-/*   Updated: 2019/07/05 11:51:22 by ysan-seb         ###   ########.fr       */
+/*   Updated: 2019/07/06 22:33:19 by maki             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,9 +134,8 @@ int main(void)
 {
 	int file;
 	int sockfd;
-	sigset_t mask;
-	sigset_t orig_mask;
-	// checkPermission();
+
+	checkPermission();
 	users = 0;
 	logger.info("Matt_daemon: Started.\n");
 	mkdir("/var/log/matt_daemon", 0700);
